@@ -81,7 +81,7 @@
             var rpc3 = new JSON_RPC.Notification("myNotification", [4, 5, 6]);
             
             var batch = [rpc0.toString(), rpc1.toString(), rpc2.toString(), rpc3.toString()];
-            var arr = JSON_RPC.parse(batch);
+            var arr = JSON_RPC.parse('[' + batch.join(',') + ']');
 
             arr.forEach(function (el, i) {
                 ok( el.toString() == batch[i], "Batch request " + i + " OK" );

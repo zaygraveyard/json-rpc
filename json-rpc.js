@@ -137,15 +137,6 @@ var JSON_RPC = {};
      * @params rpc A String or Array to parse to a JSON-RPC object.
      */
     JSON_RPC.parse = function (rpc) {
-        // batch?
-        if (rpc.constructor === Array) {
-            var arr = [];
-            rpc.forEach(function (el) {
-                arr.push(JSON_RPC.parse(el));
-            });
-            return arr;
-        }
-        
         // parsable?
         var rpc;
         try {
@@ -156,7 +147,27 @@ var JSON_RPC = {};
             obj.id = null;
             return obj;
         }
-        
+
+        // batch?
+        if (rpc.constructor === Array) {
+            if (rpc.length === 0) {
+                var obj = new JSON_RPC.Request();
+                obj.result = JSON_RPC.INVALID_REQUEST;
+                obj.id = null;
+                return obj;
+            }
+
+            var arr = [];
+            rpc.forEach(function (el) {
+                arr.push(JSON_RPC.parse_(el));
+            });
+            return arr;
+        }
+
+        return JSON_RPC.parse_(rpc);
+    };
+
+    JSON_RPC.parse_ = function (rpc) {
         // 2.0?
         if (rpc.jsonrpc !== "2.0") {
             var obj = new JSON_RPC.Request();
