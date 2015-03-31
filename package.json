@@ -1,14 +1,15 @@
 {
   "name": "json-rpc.js",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A simple JavaScript library to create, parse and manage JSON-RPC 2.0 calls.",
   "main": "json-rpc.min.js",
   "scripts": {
+    "mini": "uglifyjs json-rpc.js -m -c --comments \"/Copyright \\(c\\)/\" -o json-rpc.min.js",
     "test": "test.html"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/oliver-moran/json-rpc.git"
+    "url": "https://github.com/zaygraveyard/json-rpc.git"
   },
   "keywords": [
     "json-rpc",
@@ -20,7 +21,7 @@
   "author": "Oliver Moran <oliver.moran@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/oliver-moran/json-rpc/issues"
+    "url": "https://github.com/zaygraveyard/json-rpc/issues"
   },
-  "homepage": "https://github.com/oliver-moran/json-rpc"
+  "homepage": "https://github.com/zaygraveyard/json-rpc"
 }

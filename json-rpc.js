@@ -21,17 +21,23 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 */
-
-var JSON_RPC = {};
-
-(function () {
+(function(factory) {
+    var JSON_RPC = factory();
+    try {
+        module.exports = JSON_RPC;
+    } catch (err) {
+        // meh, probably not node
+        window.JSON_RPC = JSON_RPC;
+    }
+}(function () {
     "use strict";
-    
-    var id = 0, callbacks = {};
-    
+
+    var JSON_RPC = {};
+    var id = 0;
+
     /**
      * Constructs a new JSON-RPC Request
-     * @param method A String containing the name of the method to be invoked. 
+     * @param method A String containing the name of the method to be invoked.
      * @param params (optional) A Structured value that holds the parameter values to be used during the invocation of the method.
      */
     JSON_RPC.Request = function (method, params) {
@@ -43,7 +49,7 @@ var JSON_RPC = {};
 
         this.id = id++;
     };
-    
+
     // Implements getters and setters for the result of a JSON-RPC Request.
     // The result may be an any Object or primitive
     Object.defineProperty(JSON_RPC.Request.prototype, "result", {
@@ -82,13 +88,13 @@ var JSON_RPC = {};
         if (this.params !== undefined) rpc.params = this.params;
         if (this.result !== undefined) rpc.result = this.result;
         if (this.error !== undefined) rpc.error = this.error;
-        
+
         return JSON.stringify(rpc);
     };
-    
+
     /**
      * Constructs a new JSON-RPC Notification
-     * @param method A String containing the name of the method to be invoked. 
+     * @param method A String containing the name of the method to be invoked.
      * @param params (optional) A Structured value that holds the parameter values to be used during the invocation of the method.
      */
     JSON_RPC.Notification = function (method, params) {
@@ -98,7 +104,7 @@ var JSON_RPC = {};
             this.params = params;
         }
     };
-    
+
     /**
      * Returns a String representation of a JSON-RPC Notification
      * @returns A JSON String
@@ -109,10 +115,10 @@ var JSON_RPC = {};
             method: this.method,
             params: this.params
         };
-        
+
         return JSON.stringify(rpc);
     };
-    
+
     /**
      * Constructs a new JSON-RPC Errror object
      * @params code A Number that indicates the error type that occurred. -32768 to -32000 are reserved.
@@ -124,28 +130,19 @@ var JSON_RPC = {};
         if (typeof message == "string") this.message = message;
         if (data !== undefined) this.data = data;
     };
-    
+
     // stock errors
     JSON_RPC.PARSE_ERROR = new JSON_RPC.Error(-32700, "An error occurred on the server while parsing the JSON text.");
     JSON_RPC.INVALID_REQUEST = new JSON_RPC.Error(-32600, "The JSON sent is not a valid Request object.");
     JSON_RPC.METHOD_NOT_FOUND = new JSON_RPC.Error(-32601, "The method does not exist / is not available.");
     JSON_RPC.INVALID_PARAMS = new JSON_RPC.Error(-32602, "Invalid method parameter(s).");
     JSON_RPC.INTERNAL_ERROR = new JSON_RPC.Error(-32603, "Internal JSON-RPC error.");
-    
+
     /**
      * Parses a JSON-RPC string and converts to a JSON-RPC object or an Array of such strings.
      * @params rpc A String or Array to parse to a JSON-RPC object.
      */
     JSON_RPC.parse = function (rpc) {
-        // batch?
-        if (rpc.constructor === Array) {
-            var arr = [];
-            rpc.forEach(function (el) {
-                arr.push(JSON_RPC.parse(el));
-            });
-            return arr;
-        }
-        
         // parsable?
         var rpc;
         try {
@@ -156,7 +153,27 @@ var JSON_RPC = {};
             obj.id = null;
             return obj;
         }
-        
+
+        // batch?
+        if (rpc.constructor === Array) {
+            if (rpc.length === 0) {
+                var obj = new JSON_RPC.Request();
+                obj.result = JSON_RPC.INVALID_REQUEST;
+                obj.id = null;
+                return obj;
+            }
+
+            var arr = [];
+            rpc.forEach(function (el) {
+                arr.push(JSON_RPC.parse_(el));
+            });
+            return arr;
+        }
+
+        return JSON_RPC.parse_(rpc);
+    };
+
+    JSON_RPC.parse_ = function (rpc) {
         // 2.0?
         if (rpc.jsonrpc !== "2.0") {
             var obj = new JSON_RPC.Request();
@@ -164,7 +181,7 @@ var JSON_RPC = {};
             obj.id = null;
             return obj;
         }
-        
+
         // request or notification?
         var obj = (rpc.id === undefined)
                 ? new JSON_RPC.Notification(rpc.method, rpc.params)
@@ -181,15 +198,10 @@ var JSON_RPC = {};
                 rpc.error.data
             );
         }
-        
+
         // parsed :-)
         return obj;
     };
-        
-})();
 
-try {
-    module.exports = JSON_RPC;
-} catch (err) {
-    // meh, probably not node
-}
+    return JSON_RPC;
+}));
