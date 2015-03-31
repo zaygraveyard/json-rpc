@@ -26,9 +26,9 @@ var JSON_RPC = {};
 
 (function () {
     "use strict";
-    
-    var id = 0, callbacks = {};
-    
+
+    var id = 0;
+
     /**
      * Constructs a new JSON-RPC Request
      * @param method A String containing the name of the method to be invoked. 
